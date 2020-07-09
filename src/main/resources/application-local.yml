@@ -1,0 +1,9 @@
+spring:
+  h2.console:
+   enabled: true
+   path: '/console'
+  datasource:
+   url: 'jdbc:h2:file:C:\Users\Pako\OneDrive - Polsko-Japońska Akademia Technik Komputerowych\Spring\Kurs Udemy\KursUdemy\testdb'
+  jpa:
+    hibernate:
+      ddl-auto: validate
