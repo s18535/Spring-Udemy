@@ -1,5 +1,6 @@
 package pl.Pakinio.KursUdemy.logic;
 
+import org.springframework.stereotype.Service;
 import pl.Pakinio.KursUdemy.TaskConfigurationProperties;
 import pl.Pakinio.KursUdemy.model.*;
 import pl.Pakinio.KursUdemy.model.projection.GroupReadModel;

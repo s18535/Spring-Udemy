@@ -2,9 +2,11 @@ package pl.Pakinio.KursUdemy.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pl.Pakinio.KursUdemy.exception.NotFoundIdException;
 import pl.Pakinio.KursUdemy.logic.TaskService;
 import pl.Pakinio.KursUdemy.model.Task;
 import pl.Pakinio.KursUdemy.model.TaskRepository;
@@ -14,19 +16,20 @@ import javax.transaction.Transactional;
 import javax.validation.Valid;
 import java.net.URI;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/tasks")
 class TaskController {
     private static final Logger logger= LoggerFactory.getLogger(TaskController.class);
+    private final ApplicationEventPublisher eventPublisher;
     private final TaskRepository repository;
 
     /*@Autowired
     TaskRepository repository;*/
 
-    TaskController(TaskRepository repository, TaskService service) {
+    TaskController(TaskRepository repository, TaskService service, ApplicationEventPublisher eventPublisher) {
         this.repository = repository;
+        this.eventPublisher = eventPublisher;
     }
 
     @PostMapping
@@ -49,10 +52,11 @@ class TaskController {
     }
 
     @GetMapping("/{id}")
-    ResponseEntity<Task> readTask(@PathVariable int id){
+    ResponseEntity<Task> readTask(@PathVariable int id) throws NotFoundIdException {
         return repository.findById(id)
                 .map(task -> ResponseEntity.ok(task))
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(()->new NotFoundIdException("not found"));
+                //.orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
@@ -81,7 +85,9 @@ class TaskController {
             return ResponseEntity.notFound().build();
         }
         repository.findById(id)
-                .ifPresent(task -> task.setDone(!task.isDone()));
+                .map(Task::toggle)
+                .ifPresent(eventPublisher::publishEvent);
+                //.ifPresent(task -> task.setDone(!task.isDone()));
         return ResponseEntity.noContent().build();
     }
 
